@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 from . import serializers
@@ -37,4 +38,44 @@ class HelloAPIView(APIView):
         return Response({"method":"PUT"})
     
     def delete(self, request, pk=None):
+        return Response({"method":"DELETE"})
+    
+
+class HelloViewSets(viewsets.ViewSet):
+
+    serializer_class = serializers.HelloSerializers
+
+    def list(self, request):
+        mylist = [
+            "excel",
+            "sql",
+            "tableau",
+            "power bi",
+            "looker studio",
+            "python"
+        ]
+
+        return Response({"messages":"hallo, ini adalah viewsets","data":mylist})
+
+    def retrieve(self, request, pk=None):
+        return Response({"method":"GET"})
+    
+    def create(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data.get("name")
+            return Response({"message":f"Hallo {name}"})
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def update(self, request, pk=None):
+        return Response({"method":"PUT"})
+    
+    def partial_update(self, request, pk=None):
+        return Response({"method":"PATCH"})
+    
+    def destroy(self, request, pk=None):
         return Response({"method":"DELETE"})
