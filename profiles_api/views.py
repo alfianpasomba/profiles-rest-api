@@ -3,7 +3,14 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework import filters
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticated
 from . import serializers
+from . import models
+from . import permissions
 
 # Create your views here.
 
@@ -79,3 +86,23 @@ class HelloViewSets(viewsets.ViewSet):
     
     def destroy(self, request, pk=None):
         return Response({"method":"DELETE"})
+
+class ProfileViewSets(viewsets.ModelViewSet):
+    serializer_class = serializers.UserProfileSerializers
+    queryset = models.UserProfile.objects.all()
+    permission_classes = (permissions.UpdateOwnProfile,)
+    authentication_classes = (TokenAuthentication,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ("name", "email",)
+
+class UserLoginViewSets(ObtainAuthToken):
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+class ProfileFeedItemViewSets(viewsets.ModelViewSet):
+    serializer_class = serializers.ProfileFeedItemSerializers
+    queryset = models.ProfileFeedItem.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnProfileFeed, IsAuthenticated)
+
+    def perform_create(self, serializer):
+        serializer.save(user_profile=self.request.user)
